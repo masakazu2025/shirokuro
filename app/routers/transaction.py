@@ -2,9 +2,12 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
+from app.transaction_items import item_registry, JournalItem, PictureItem
+from app.transaction_items.payment_record import PaymentRecordItem
+from app.transaction_items.product_record import ProductRecordItem
 from database import get_session
 from models import Transaction, TransactionUpdate, TransactionItem
-from app.transaction_items import ItemName, item_registry
+from pathlib import Path
 
 router = APIRouter()
 
@@ -16,16 +19,8 @@ def get_transaction(transaction_id: str, session: Session = Depends(get_session)
     return transaction
 
 
-@router.post("/", response_model=Transaction, status_code=201)
-def create_transaction(
-    transaction: Transaction, session: Session = Depends(get_session)
-):
-    """取引を新規作成します。"""
-    db_transaction = Transaction.model_validate(transaction)
-    session.add(db_transaction)
-    session.commit()
-    session.refresh(db_transaction)
-    return db_transaction
+def get_transaction_root_dir() -> Path:
+    return Path("data/transactions")
 
 
 class TransactionFilter:
@@ -99,9 +94,8 @@ def read_transaction_items(
             "label": cls.label,
             "url": str(
                 request.url_for(
-                    "read_transaction_item",
+                    f"read_{name}_item",
                     transaction_id=transaction.transaction_id,
-                    item_name=name,
                 )
             ),
         }
@@ -109,11 +103,51 @@ def read_transaction_items(
     ]
 
 
-@router.get("/{transaction_id}/items/{item_name}")
-def read_transaction_item(
-    item_name: ItemName,  # type: ignore
+@router.get("/{transaction_id}/items/journal")
+def read_journal_item(
+    transaction: Transaction = Depends(get_transaction),
+    root_dir: Path = Depends(get_transaction_root_dir),
+):
+    """指定したジャーナルのデータを返します。"""
+    item = JournalItem(transaction.transaction_id, root_dir)
+    try:
+        return item.to_json()
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found")
+
+
+@router.get("/{transaction_id}/items/product_record")
+def read_product_record_item(
+    transaction: Transaction = Depends(get_transaction),
+    root_dir: Path = Depends(get_transaction_root_dir),
+    session: Session = Depends(get_session),
+):
+    """指定した商品レコードのデータを返します。"""
+    item = ProductRecordItem(transaction.transaction_id, root_dir)
+    try:
+        return item.to_json(session)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found")
+
+
+@router.get("/{transaction_id}/items/payment_record")
+def read_payment_record_item(
+    transaction: Transaction = Depends(get_transaction),
+    root_dir: Path = Depends(get_transaction_root_dir),
+    session: Session = Depends(get_session),
+):
+    """指定した支払レコードのデータを返します。"""
+    item = PaymentRecordItem(transaction.transaction_id, root_dir)
+    try:
+        return item.to_json(session)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="File not found")
+
+
+@router.get("/{transaction_id}/items/picture")
+def read_picture_item(
     transaction: Transaction = Depends(get_transaction),
 ):
-    """指定したアイテム種別のデータを返します。"""
-    item = item_registry[item_name](transaction.transaction_id)
+    """指定した画像のデータを返します。"""
+    item = PictureItem(transaction.transaction_id)
     return item.to_json()

@@ -42,3 +42,25 @@ class Picture(SQLModel, table=True):
 
 class PictureResponse(Picture):
     filepath: str
+
+
+# ----------------------------------------------
+#  CategoryMaster
+# ----------------------------------------------
+
+
+class ProductCategoryMaster(SQLModel, table=True):
+    category_id: int = Field(primary_key=True)
+    sub_category_id: int = Field(primary_key=True)
+    category_name: str
+
+
+# ----------------------------------------------
+#  PaymentLabelMaster
+# ----------------------------------------------
+
+
+class PaymentLabelMaster(SQLModel, table=True):
+    category: str = Field(primary_key=True)
+    item_id: int = Field(primary_key=True)
+    item_label: str

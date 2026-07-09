@@ -1,4 +1,14 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
+
+
+class BaseReader(ABC):
+    def __init__(self, filepath: Path):
+        self.filepath = filepath
+
+    @abstractmethod
+    def read(self):
+        pass
 
 
 class BaseItem(ABC):
@@ -12,6 +22,13 @@ class BaseItem(ABC):
         if not hasattr(cls, "label"):
             raise TypeError(f"{cls.__name__} に label が定義されていません")
 
-    @abstractmethod
-    def to_json(self) -> dict:
-        pass
+    def _resolve_filepath(
+        self,
+        transaction_id: str,
+        root_dir: Path,
+        prefix: str,
+        suffix: str,
+    ) -> Path:
+        dirpath = root_dir / transaction_id
+        filename = f"{prefix}-{transaction_id}{suffix}"
+        return dirpath / filename
