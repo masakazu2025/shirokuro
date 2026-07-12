@@ -72,17 +72,11 @@ def read_transaction_items(
     request: Request, transaction: Transaction = Depends(get_transaction)
 ):
     """取引に紐づくアイテム種別の一覧を返します。各アイテムの取得URLも含まれます。"""
+    base_url = request.url_for(
+        "read_transaction", transaction_id=transaction.transaction_id
+    )
     return [
-        {
-            "name": name,
-            "label": cls.label,
-            "url": str(
-                request.url_for(
-                    f"read_{name}_item",
-                    transaction_id=transaction.transaction_id,
-                )
-            ),
-        }
+        {"name": name, "label": cls.label, "url": f"{base_url}/items/{name}"}
         for name, cls in item_registry.items()
     ]
 
