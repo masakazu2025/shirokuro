@@ -150,12 +150,6 @@ def test_transaction_item_list(client):
         == f"/transactions/{TRANSACTION_DATA["transaction_id"]}/items/payment_record"
     )
 
-    assert items["picture"]["label"] == "画像"
-    assert (
-        urlparse(items["picture"]["url"]).path
-        == f"/transactions/{TRANSACTION_DATA["transaction_id"]}/items/picture"
-    )
-
 
 def test_transaction_journal_item(client, monkeypatch):
     monkeypatch.setattr(JournalItem, "_read", lambda self: JOURNAL_TEXT)
@@ -193,6 +187,16 @@ def test_transaction_product_record_item_not_found(client):
     assert response.status_code == 404
 
 
+def test_transaction_product_record_item_invalid_data(client, monkeypatch):
+    monkeypatch.setattr(
+        ProductRecordItem, "_read", lambda self: [["invalid", 1, 600, 2]]
+    )
+    response = client.get(
+        f"/transactions/{TRANSACTION_DATA["transaction_id"]}/items/product_record"
+    )
+    assert response.status_code == 422
+
+
 def test_transaction_payment_record_item(client, monkeypatch):
     monkeypatch.setattr(PaymentRecordItem, "_read", lambda self: PAYMENT_DATA)
     response = client.get(
@@ -211,11 +215,9 @@ def test_transaction_payment_record_item_not_found(client):
     assert response.status_code == 404
 
 
-def test_transaction_picture_item(client):
+def test_transaction_payment_record_item_invalid_data(client, monkeypatch):
+    monkeypatch.setattr(PaymentRecordItem, "_read", lambda self: ["not", "a", "dict"])
     response = client.get(
-        f"/transactions/{TRANSACTION_DATA["transaction_id"]}/items/picture"
+        f"/transactions/{TRANSACTION_DATA["transaction_id"]}/items/payment_record"
     )
-    assert response.status_code == 200
-    item = response.json()
-    assert item["transaction_id"] == TRANSACTION_DATA["transaction_id"]
-    assert item["name"] == "picture"
+    assert response.status_code == 422

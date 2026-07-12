@@ -1,8 +1,7 @@
-from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
-from app.transaction_items import item_registry, JournalItem, PictureItem
+from app.transaction_items import item_registry, JournalItem
+from app.transaction_items.base import ItemDataError
 from app.transaction_items.payment_record import PaymentRecordItem
 from app.transaction_items.product_record import ProductRecordItem
 from database import get_session
@@ -23,26 +22,11 @@ def get_transaction_root_dir() -> Path:
     return Path("data/transactions")
 
 
-class TransactionFilter:
-    def __init__(
-        self,
-        started_at: datetime | None = None,
-        ended_at: datetime | None = None,
-        start_no: int | None = None,
-        end_no: int | None = None,
-    ):
-        self.started_at = started_at
-        self.ended_at = ended_at
-        self.start_no = start_no
-        self.end_no = end_no
-
-
 @router.get("/", response_model=list[Transaction])
 def read_transactions(
-    filters: TransactionFilter = Depends(),
     session: Session = Depends(get_session),
 ):
-    """取引一覧を取得します。日時・取引番号の範囲でフィルタリングできます。"""
+    """取引一覧を取得します。"""
     transactions = session.exec(select(Transaction)).all()
     return transactions
 
@@ -128,6 +112,8 @@ def read_product_record_item(
         return item.to_json(session)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
+    except ItemDataError as e:
+        raise HTTPException(status_code=422, detail=str(e))
 
 
 @router.get("/{transaction_id}/items/payment_record")
@@ -142,12 +128,5 @@ def read_payment_record_item(
         return item.to_json(session)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="File not found")
-
-
-@router.get("/{transaction_id}/items/picture")
-def read_picture_item(
-    transaction: Transaction = Depends(get_transaction),
-):
-    """指定した画像のデータを返します。"""
-    item = PictureItem(transaction.transaction_id)
-    return item.to_json()
+    except ItemDataError as e:
+        raise HTTPException(status_code=422, detail=str(e))

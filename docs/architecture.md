@@ -9,14 +9,17 @@ shirokuro-backend/
 ├── models.py                   # SQLModelデータモデル
 └── app/
     ├── routers/
-    │   ├── transaction.py      # 取引エンドポイント
-    │   └── picture.py          # 画像エンドポイント
+    │   └── transaction.py      # 取引エンドポイント
     └── transaction_items/
         ├── base.py             # アイテムの抽象基底クラス
         ├── journal.py          # ジャーナルアイテム
-        ├── picture.py          # 画像アイテム
+        ├── product_record.py   # 商品レコードアイテム
+        ├── payment_record.py   # 支払レコードアイテム
         └── __init__.py         # レジストリ・Enum定義
 ```
+
+> 画像（端末スクリーンショット）アイテムは元の社内ツールでは実装されていた機能ですが、
+> 今回はスコープ外としています。将来的にレジストリパターンで追加可能です。
 
 ## TransactionItems のレジストリパターン
 
@@ -39,7 +42,7 @@ class NewItem(BaseItem):
         ...
 
 # __init__.py の _items に追加するだけでAPIに反映される
-_items = [JournalItem, PictureItem, NewItem]
+_items = [JournalItem, ProductRecordItem, PaymentRecordItem, NewItem]
 ```
 
 `BaseItem.__init_subclass__` により、`name` / `label` の定義漏れをクラス定義時点でエラー検出できます。
@@ -55,13 +58,6 @@ Transaction
 ├── created_at      (datetime)
 ├── started_at      (datetime | None)
 └── ended_at        (datetime | None)
-
-Picture
-├── id              (PK, int, auto)
-├── filename        (str)
-├── shop_no         (int)
-├── register_no     (int)
-└── created_at      (datetime)
 ```
 
 ## DB初期化

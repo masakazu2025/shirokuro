@@ -1,5 +1,6 @@
 import pytest
 import json
+from app.transaction_items.base import ItemDataError
 from app.transaction_items.payment_record import PaymentRecordItem
 from sqlmodel import create_engine, SQLModel, Session
 from sqlmodel.pool import StaticPool
@@ -81,3 +82,11 @@ def test_payment_record_to_json(session, payment_record_item):
         }
         for key, rows in LABELED_RECORD.items()
     }
+
+
+def test_payment_record_invalid_structure_raises_item_data_error(
+    session, payment_record_item, monkeypatch
+):
+    monkeypatch.setattr(PaymentRecordItem, "_read", lambda self: ["not", "a", "dict"])
+    with pytest.raises(ItemDataError):
+        payment_record_item.to_json(session)

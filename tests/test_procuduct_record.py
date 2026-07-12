@@ -1,5 +1,6 @@
 import pytest
 import csv
+from app.transaction_items.base import ItemDataError
 from app.transaction_items.product_record import ProductRecordItem
 from sqlmodel import create_engine, SQLModel, Session
 from sqlmodel.pool import StaticPool
@@ -98,3 +99,11 @@ def test_product_record_to_json(session, product_record_item):
     assert json_data["name"] == "product_record"
     assert json_data["label"] == "商品レコード"
     assert json_data["data"] == {"columns": COLUMNS, "rows": LABELED_RECORD}
+
+
+def test_product_record_invalid_row_raises_item_data_error(session, product_record_item, monkeypatch):
+    monkeypatch.setattr(
+        ProductRecordItem, "_read", lambda self: [["invalid", 1, 600, 2]]
+    )
+    with pytest.raises(ItemDataError):
+        product_record_item.to_json(session)

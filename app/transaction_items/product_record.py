@@ -1,7 +1,7 @@
 import csv
 from pathlib import Path
 from sqlmodel import Session, select
-from app.transaction_items.base import BaseReader, BaseItem
+from app.transaction_items.base import BaseReader, BaseItem, ItemDataError
 from models import ProductCategoryMaster
 
 
@@ -63,7 +63,10 @@ class ProductRecordItem(BaseItem):
     def to_json(self, session: Session) -> dict:
         rows = self._read()
         masters = session.exec(select(ProductCategoryMaster)).all()
-        rows = self._format(rows, masters)
+        try:
+            rows = self._format(rows, masters)
+        except (ValueError, IndexError) as e:
+            raise ItemDataError(f"商品レコードの形式が不正です: {e}") from e
 
         return {
             "transaction_id": self.transaction_id,

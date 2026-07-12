@@ -1,14 +1,17 @@
 import json
 from pathlib import Path
 from sqlmodel import Session, select
-from app.transaction_items.base import BaseReader, BaseItem
+from app.transaction_items.base import BaseReader, BaseItem, ItemDataError
 from models import PaymentLabelMaster
 
 
 class PaymentRecordReader(BaseReader):
     def read(self) -> dict[str, list]:
         with open(self.filepath, "r", encoding="utf-8") as f:
-            return json.load(f)
+            try:
+                return json.load(f)
+            except json.JSONDecodeError as e:
+                raise ItemDataError(f"支払レコードの形式が不正です: {e}") from e
 
 
 class PaymentRecordFormatter:
@@ -59,7 +62,10 @@ class PaymentRecordItem(BaseItem):
     def to_json(self, session: Session) -> dict:
         row_data = self._read()
         labels = session.exec(select(PaymentLabelMaster)).all()
-        row_data = self._format(row_data, labels)
+        try:
+            row_data = self._format(row_data, labels)
+        except (AttributeError, TypeError) as e:
+            raise ItemDataError(f"支払レコードの形式が不正です: {e}") from e
         return {
             "transaction_id": self.transaction_id,
             "type": "tables",

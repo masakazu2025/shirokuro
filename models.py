@@ -28,23 +28,6 @@ class TransactionItem(SQLModel):
 
 
 # ----------------------------------------------
-#  Pictrure
-# ----------------------------------------------
-
-
-class Picture(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    filename: str
-    shop_no: int
-    register_no: int
-    created_at: datetime  # ファイル作成日時
-
-
-class PictureResponse(Picture):
-    filepath: str
-
-
-# ----------------------------------------------
 #  CategoryMaster
 # ----------------------------------------------
 

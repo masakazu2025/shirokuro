@@ -2,6 +2,10 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 
 
+class ItemDataError(Exception):
+    """アイテムのデータ形式が不正で解析できない場合に送出する。"""
+
+
 class BaseReader(ABC):
     def __init__(self, filepath: Path):
         self.filepath = filepath
