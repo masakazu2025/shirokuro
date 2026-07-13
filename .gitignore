@@ -220,6 +220,7 @@ __marimo__/
 
 run.bat
 database.db
+data/
 
 docs/FastAPI*
 docs/.obsidian/
