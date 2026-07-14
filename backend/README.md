@@ -21,8 +21,10 @@ FastAPI + SQLModel で構築し、取引に紐づく各種データ（ジャー�
 poetry install
 
 # サーバー起動（DBは初回起動時に自動作成）
-python run.py
+poetry run uvicorn run:app --reload
 ```
+
+（Windowsの場合は`run.bat`でも同じコマンドを実行できます）
 
 起動後、`http://localhost:8000/docs` でSwagger UIを確認できます。
 
