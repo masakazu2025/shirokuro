@@ -1,3 +1,4 @@
+from datetime import datetime, time, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlmodel import Session, select
 from app.transaction_items import item_registry, JournalItem
@@ -5,7 +6,12 @@ from app.transaction_items.base import ItemDataError
 from app.transaction_items.payment_record import PaymentRecordItem
 from app.transaction_items.product_record import ProductRecordItem
 from database import get_session
-from models import Transaction, TransactionUpdate, TransactionItem
+from models import (
+    Transaction,
+    TransactionSearchQuery,
+    TransactionUpdate,
+    TransactionItem,
+)
 from pathlib import Path
 
 router = APIRouter()
@@ -24,10 +30,43 @@ def get_transaction_root_dir() -> Path:
 
 @router.get("/", response_model=list[Transaction])
 def read_transactions(
+    search_query: TransactionSearchQuery = Depends(),
     session: Session = Depends(get_session),
 ):
-    """取引一覧を取得します。"""
-    transactions = session.exec(select(Transaction)).all()
+    """取引一覧を取得します。検索条件を指定した場合は絞り込みます。"""
+    if (
+        search_query.created_at_from is not None
+        and search_query.created_at_to is not None
+        and search_query.created_at_from > search_query.created_at_to
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="created_at_from must be before or equal to created_at_to",
+        )
+    statement = select(Transaction)
+    if search_query.shop_no is not None:
+        statement = statement.where(Transaction.shop_no == search_query.shop_no)
+    if search_query.register_no is not None:
+        statement = statement.where(
+            Transaction.register_no == search_query.register_no
+        )
+    if search_query.transaction_no is not None:
+        statement = statement.where(
+            Transaction.transaction_no == search_query.transaction_no
+        )
+    if search_query.created_at_from is not None:
+        statement = statement.where(
+            Transaction.created_at
+            >= datetime.combine(search_query.created_at_from, time.min)
+        )
+    if search_query.created_at_to is not None:
+        statement = statement.where(
+            Transaction.created_at
+            < datetime.combine(
+                search_query.created_at_to + timedelta(days=1), time.min
+            )
+        )
+    transactions = session.exec(statement).all()
     return transactions
 
 

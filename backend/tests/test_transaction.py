@@ -42,6 +42,44 @@ PAYMENT_DATA = {
     "credit": [15000, "VISA", "一括"],
     "codepay": [5000, "PayPay"],
 }
+SEARCH_TRANSACTIONS = [
+    {
+        "transaction_id": "2026060100000001",
+        "shop_no": 1,
+        "register_no": 1,
+        "transaction_no": 1,
+        "created_at": "2026-06-01T10:00:00",
+        "started_at": None,
+        "ended_at": None,
+    },
+    {
+        "transaction_id": "2026060100000002",
+        "shop_no": 1,
+        "register_no": 2,
+        "transaction_no": 2,
+        "created_at": "2026-06-02T10:00:00",
+        "started_at": None,
+        "ended_at": None,
+    },
+    {
+        "transaction_id": "2026060100000003",
+        "shop_no": 2,
+        "register_no": 1,
+        "transaction_no": 3,
+        "created_at": "2026-06-03T10:00:00",
+        "started_at": None,
+        "ended_at": None,
+    },
+    {
+        "transaction_id": "2026060100000004",
+        "shop_no": 2,
+        "register_no": 2,
+        "transaction_no": 1,
+        "created_at": "2026-06-05T10:00:00",
+        "started_at": None,
+        "ended_at": None,
+    },
+]
 
 
 @pytest.fixture(name="client")
@@ -83,10 +121,157 @@ def client_fixture():
     app.dependency_overrides.clear()
 
 
+@pytest.fixture(name="search_client")
+def search_client_fixture():
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    SQLModel.metadata.create_all(engine)
+
+    with Session(engine) as session:
+        for record in SEARCH_TRANSACTIONS:
+            session.add(Transaction.model_validate(record))
+        session.commit()
+
+    def get_session_override():
+        with Session(engine) as session:
+            yield session
+
+    app.dependency_overrides[get_session] = get_session_override
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
+
+
 def test_read_transactions(client):
     response = client.get("/transactions")
     assert response.status_code == 200
     assert len(response.json()) == 1
+
+
+def test_search_transactions_by_shop_no(search_client):
+    response = search_client.get("/transactions", params={"shop_no": 1})
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000001", "2026060100000002"}
+
+
+def test_search_transactions_by_register_no(search_client):
+    response = search_client.get("/transactions", params={"register_no": 1})
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000001", "2026060100000003"}
+
+
+def test_search_transactions_by_transaction_no(search_client):
+    response = search_client.get("/transactions", params={"transaction_no": 1})
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000001", "2026060100000004"}
+
+
+def test_search_transactions_by_multiple_conditions(search_client):
+    response = search_client.get(
+        "/transactions", params={"shop_no": 1, "register_no": 2}
+    )
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000002"}
+
+
+def test_search_transactions_by_register_no_and_created_at_from(search_client):
+    response = search_client.get(
+        "/transactions",
+        params={"register_no": 1, "created_at_from": "2026-06-02"},
+    )
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000003"}
+
+
+def test_search_transactions_by_register_no_and_created_at_range(search_client):
+    response = search_client.get(
+        "/transactions",
+        params={
+            "register_no": 1,
+            "created_at_from": "2026-06-02",
+            "created_at_to": "2026-06-04",
+        },
+    )
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000003"}
+
+
+def test_search_transactions_by_created_at_from(search_client):
+    response = search_client.get(
+        "/transactions", params={"created_at_from": "2026-06-02"}
+    )
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000002", "2026060100000003", "2026060100000004"}
+
+
+def test_search_transactions_by_created_at_to(search_client):
+    response = search_client.get(
+        "/transactions", params={"created_at_to": "2026-06-02"}
+    )
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000001", "2026060100000002"}
+
+
+def test_search_transactions_by_created_at_range(search_client):
+    response = search_client.get(
+        "/transactions",
+        params={"created_at_from": "2026-06-02", "created_at_to": "2026-06-03"},
+    )
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000002", "2026060100000003"}
+
+
+def test_search_transactions_no_match(search_client):
+    response = search_client.get("/transactions", params={"shop_no": 99})
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_search_transactions_invalid_shop_no(search_client):
+    response = search_client.get("/transactions", params={"shop_no": "abc"})
+    assert response.status_code == 422
+
+
+def test_search_transactions_invalid_register_no(search_client):
+    response = search_client.get("/transactions", params={"register_no": "abc"})
+    assert response.status_code == 422
+
+
+def test_search_transactions_invalid_transaction_no(search_client):
+    response = search_client.get("/transactions", params={"transaction_no": "abc"})
+    assert response.status_code == 422
+
+
+def test_search_transactions_invalid_created_at_from_format(search_client):
+    response = search_client.get(
+        "/transactions", params={"created_at_from": "2026/06/01"}
+    )
+    assert response.status_code == 422
+
+
+def test_search_transactions_invalid_created_at_to_format(search_client):
+    response = search_client.get(
+        "/transactions", params={"created_at_to": "2026/06/01"}
+    )
+    assert response.status_code == 422
+
+
+def test_search_transactions_created_at_range_reversed(search_client):
+    response = search_client.get(
+        "/transactions",
+        params={"created_at_from": "2026-06-03", "created_at_to": "2026-06-02"},
+    )
+    assert response.status_code == 422
 
 
 def test_read_transaction(client):

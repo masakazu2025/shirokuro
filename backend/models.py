@@ -1,5 +1,5 @@
 from sqlmodel import SQLModel, Field
-from datetime import datetime
+from datetime import date, datetime
 
 # ----------------------------------------------
 #  Transaction
@@ -25,6 +25,14 @@ class TransactionItem(SQLModel):
     name: str
     label: str
     url: str
+
+
+class TransactionSearchQuery(SQLModel):
+    shop_no: int | None = None
+    register_no: int | None = None
+    transaction_no: int | None = None
+    created_at_from: date | None = None
+    created_at_to: date | None = None
 
 
 # ----------------------------------------------
