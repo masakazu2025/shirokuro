@@ -39,6 +39,20 @@ class TransactionSearchQuery(SQLModel):
 
 
 # ----------------------------------------------
+#  Terminal
+# ----------------------------------------------
+
+
+class Terminal(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    ip: str = Field(unique=True)
+
+
+class TerminalCreate(SQLModel):
+    ip: IPvAnyAddress
+
+
+# ----------------------------------------------
 #  CategoryMaster
 # ----------------------------------------------
 
