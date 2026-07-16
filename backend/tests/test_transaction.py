@@ -51,6 +51,7 @@ SEARCH_TRANSACTIONS = [
         "created_at": "2026-06-01T10:00:00",
         "started_at": None,
         "ended_at": None,
+        "ipaddress": "192.168.1.1",
     },
     {
         "transaction_id": "2026060100000002",
@@ -60,6 +61,7 @@ SEARCH_TRANSACTIONS = [
         "created_at": "2026-06-02T10:00:00",
         "started_at": None,
         "ended_at": None,
+        "ipaddress": "192.168.1.2",
     },
     {
         "transaction_id": "2026060100000003",
@@ -69,6 +71,7 @@ SEARCH_TRANSACTIONS = [
         "created_at": "2026-06-03T10:00:00",
         "started_at": None,
         "ended_at": None,
+        "ipaddress": "192.168.1.1",
     },
     {
         "transaction_id": "2026060100000004",
@@ -78,6 +81,7 @@ SEARCH_TRANSACTIONS = [
         "created_at": "2026-06-05T10:00:00",
         "started_at": None,
         "ended_at": None,
+        "ipaddress": "192.168.1.3",
     },
 ]
 
@@ -203,6 +207,34 @@ def test_search_transactions_by_register_no_and_created_at_range(search_client):
     assert ids == {"2026060100000003"}
 
 
+def test_search_transactions_by_ipaddress(search_client):
+    response = search_client.get(
+        "/transactions", params={"ipaddress": "192.168.1.1"}
+    )
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000001", "2026060100000003"}
+
+
+def test_search_transactions_by_ipaddress_and_shop_no(search_client):
+    response = search_client.get(
+        "/transactions", params={"ipaddress": "192.168.1.1", "shop_no": 2}
+    )
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000003"}
+
+
+def test_search_transactions_by_ipaddress_and_created_at_range(search_client):
+    response = search_client.get(
+        "/transactions",
+        params={"ipaddress": "192.168.1.1", "created_at_from": "2026-06-02"},
+    )
+    assert response.status_code == 200
+    ids = {t["transaction_id"] for t in response.json()}
+    assert ids == {"2026060100000003"}
+
+
 def test_search_transactions_by_created_at_from(search_client):
     response = search_client.get(
         "/transactions", params={"created_at_from": "2026-06-02"}
@@ -270,6 +302,13 @@ def test_search_transactions_created_at_range_reversed(search_client):
     response = search_client.get(
         "/transactions",
         params={"created_at_from": "2026-06-03", "created_at_to": "2026-06-02"},
+    )
+    assert response.status_code == 422
+
+
+def test_search_transactions_invalid_ipaddress(search_client):
+    response = search_client.get(
+        "/transactions", params={"ipaddress": "not-an-ip"}
     )
     assert response.status_code == 422
 

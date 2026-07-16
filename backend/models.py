@@ -1,4 +1,5 @@
 from sqlmodel import SQLModel, Field
+from pydantic import IPvAnyAddress
 from datetime import date, datetime
 
 # ----------------------------------------------
@@ -14,6 +15,7 @@ class Transaction(SQLModel, table=True):
     created_at: datetime  # ファイル作成日時
     started_at: datetime | None
     ended_at: datetime | None
+    ipaddress: str | None = None
 
 
 class TransactionUpdate(SQLModel):
@@ -33,6 +35,7 @@ class TransactionSearchQuery(SQLModel):
     transaction_no: int | None = None
     created_at_from: date | None = None
     created_at_to: date | None = None
+    ipaddress: IPvAnyAddress | None = None
 
 
 # ----------------------------------------------

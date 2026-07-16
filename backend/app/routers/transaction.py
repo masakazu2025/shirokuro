@@ -54,6 +54,10 @@ def read_transactions(
         statement = statement.where(
             Transaction.transaction_no == search_query.transaction_no
         )
+    if search_query.ipaddress is not None:
+        statement = statement.where(
+            Transaction.ipaddress == str(search_query.ipaddress)
+        )
     if search_query.created_at_from is not None:
         statement = statement.where(
             Transaction.created_at
