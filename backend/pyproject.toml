@@ -17,6 +17,9 @@ dependencies = [
 [tool.poetry]
 package-mode = false
 
+[tool.vercel]
+entrypoint = "run:app"
+
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.3"
