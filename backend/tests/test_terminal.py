@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlmodel import create_engine, SQLModel, Session
 from sqlmodel.pool import StaticPool
-from run import app
+from main import app
 from database import get_session
 from models import Terminal
 

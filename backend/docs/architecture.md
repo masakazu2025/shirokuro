@@ -4,7 +4,7 @@
 
 ```
 shirokuro-backend/
-├── run.py                      # エントリーポイント・ルーター登録
+├── main.py                      # エントリーポイント・ルーター登録
 ├── database.py                 # DB接続・セッション管理
 ├── models.py                   # SQLModelデータモデル
 └── app/

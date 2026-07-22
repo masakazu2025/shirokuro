@@ -18,7 +18,7 @@ dependencies = [
 package-mode = false
 
 [tool.vercel]
-entrypoint = "run:app"
+entrypoint = "main:app"
 
 
 [tool.poetry.group.dev.dependencies]

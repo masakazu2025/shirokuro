@@ -4,7 +4,7 @@ from sqlmodel import create_engine, SQLModel, Session
 from sqlmodel.pool import StaticPool
 from app.transaction_items.payment_record import PaymentRecordItem
 from app.transaction_items.product_record import ProductRecordItem
-from run import app
+from main import app
 from database import get_session
 from models import PaymentLabelMaster, ProductCategoryMaster, Transaction
 from urllib.parse import urlparse

@@ -21,7 +21,7 @@ FastAPI + SQLModel で構築し、取引に紐づく各種データ（ジャー�
 poetry install
 
 # サーバー起動（DBは初回起動時に自動作成）
-poetry run uvicorn run:app --reload
+poetry run uvicorn main:app --reload
 ```
 
 （Windowsの場合は`run.bat`でも同じコマンドを実行できます）
