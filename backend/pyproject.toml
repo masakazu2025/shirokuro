@@ -17,6 +17,12 @@ dependencies = [
 [tool.poetry]
 package-mode = false
 
+[tool.uv]
+package = false
+
+[tool.vercel]
+entrypoint = "main:app"
+
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0.3"
 httpx2 = "^2.3.0"
