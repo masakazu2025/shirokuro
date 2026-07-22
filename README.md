@@ -1,4 +1,4 @@
-# Shirokuro Fullstack
+# Shirokuro
 
 POSレジの取引データを管理するツールです。バックエンド（API）とフロントエンド（閲覧UI）を分離したモノレポ構成にしています。
 
