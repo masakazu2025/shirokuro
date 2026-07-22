@@ -25,7 +25,7 @@ def get_transaction(transaction_id: str, session: Session = Depends(get_session)
 
 
 def get_transaction_root_dir() -> Path:
-    return Path("data/transactions")
+    return Path(__file__).resolve().parent.parent.parent / "demo_data" / "transactions"
 
 
 @router.get("/", response_model=list[Transaction])
