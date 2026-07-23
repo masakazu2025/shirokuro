@@ -97,14 +97,10 @@ def update_transaction(
 
 @router.delete("/{transaction_id}")
 def delete_transaction(
-    delete_files: bool = False,
     transaction: Transaction = Depends(get_transaction),
     session: Session = Depends(get_session),
 ):
-    """取引を削除します。delete_files=true を指定すると関連ファイルも削除します。"""
-    if delete_files:
-        # ファイル削除処理
-        pass
+    """取引を削除します。"""
     session.delete(transaction)
     session.commit()
     return {"message": "deleted"}
