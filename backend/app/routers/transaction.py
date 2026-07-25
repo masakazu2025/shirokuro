@@ -16,6 +16,9 @@ from pathlib import Path
 
 router = APIRouter()
 
+# 取引番号の最大値(9999)にちなんだ、検索結果件数の安全弁上限。
+SEARCH_RESULT_LIMIT = 10000
+
 
 def get_transaction(transaction_id: str, session: Session = Depends(get_session)):
     transaction = session.get(Transaction, transaction_id)
@@ -83,6 +86,10 @@ def read_transactions(
         statement = statement.where(
             Transaction.created_at <= search_query.created_at_to
         )
+    # 条件を絞らずに検索されたときの事故防止用の安全弁。実運用は日時等で絞られる前提なので、
+    # 通常はここに到達しない想定。件数がちょうどSEARCH_RESULT_LIMIT件ならフロント側で
+    # 「絞り込んでください」の案内を出す(追加のCOUNTクエリは行わない)。
+    statement = statement.limit(SEARCH_RESULT_LIMIT)
     transactions = session.exec(statement).all()
     return transactions
 

@@ -175,10 +175,66 @@ def search_client_fixture():
     app.dependency_overrides.clear()
 
 
+@pytest.fixture(name="capped_search_client")
+def capped_search_client_fixture():
+    """件数上限(10000件)のテスト用。register_no=1が10000件、register_no=2が1件(合計10001件)。"""
+    engine = create_engine(
+        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
+    )
+    SQLModel.metadata.create_all(engine)
+
+    with Session(engine) as session:
+        records = [
+            Transaction.model_validate(
+                {
+                    "transaction_id": f"CAP{i:017d}",
+                    "shop_no": 1,
+                    "register_no": 1 if i < 10000 else 2,
+                    "transaction_no": (i % 9999) + 1,
+                    "created_at": "2026-06-01T00:00:00",
+                    "started_at": None,
+                    "ended_at": None,
+                    "ipaddress": "10.0.0.1",
+                }
+            )
+            for i in range(10001)
+        ]
+        session.add_all(records)
+        session.commit()
+
+    def get_session_override():
+        with Session(engine) as session:
+            yield session
+
+    app.dependency_overrides[get_session] = get_session_override
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()
+
+
 def test_read_transactions(client):
     response = client.get("/transactions")
     assert response.status_code == 200
     assert len(response.json()) == 1
+
+
+# --- 境界値: 件数上限(10000件) ---
+
+
+def test_search_transactions_at_cap_returns_all(capped_search_client):
+    """該当件数がちょうど10000件のときは、切り詰められずに全件返る"""
+    response = capped_search_client.get(
+        "/transactions", params={"register_no": 1}
+    )
+    assert response.status_code == 200
+    assert len(response.json()) == 10000
+
+
+def test_search_transactions_over_cap_is_truncated(capped_search_client):
+    """該当件数が10000件を超える(10001件)ときは、10000件に切り詰められる"""
+    response = capped_search_client.get("/transactions", params={"shop_no": 1})
+    assert response.status_code == 200
+    assert len(response.json()) == 10000
 
 
 # --- 正常系: 単一・複数(OR) ---
