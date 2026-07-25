@@ -1,6 +1,7 @@
+from typing import Annotated
 from sqlmodel import SQLModel, Field
 from pydantic import IPvAnyAddress
-from datetime import date, datetime
+from datetime import datetime
 
 # ----------------------------------------------
 #  Transaction
@@ -29,13 +30,19 @@ class TransactionItem(SQLModel):
     url: str
 
 
+ShopNo = Annotated[int, Field(ge=1, le=99999)]
+RegisterNo = Annotated[int, Field(ge=1, le=99999)]
+TransactionNo = Annotated[int, Field(ge=1, le=9999)]
+
+
 class TransactionSearchQuery(SQLModel):
-    shop_no: int | None = None
-    register_no: int | None = None
-    transaction_no: int | None = None
-    created_at_from: date | None = None
-    created_at_to: date | None = None
-    ipaddress: IPvAnyAddress | None = None
+    shop_no: list[ShopNo] | None = None
+    register_no: list[RegisterNo] | None = None
+    transaction_no_from: TransactionNo | None = None
+    transaction_no_to: TransactionNo | None = None
+    created_at_from: datetime | None = None
+    created_at_to: datetime | None = None
+    ipaddress: list[IPvAnyAddress] | None = None
 
 
 # ----------------------------------------------
