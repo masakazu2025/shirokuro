@@ -204,6 +204,9 @@ tempCodeRunnerFile.py
 # VSCodeCounter extension output
 .VSCodeCounter/
 
+# Claude Code local settings
+.claude/
+
 # Ruff stuff:
 .ruff_cache/
 
