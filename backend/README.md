@@ -10,7 +10,7 @@ FastAPI + SQLModel で構築し、取引に紐づく各種データ（ジャー�
 | 言語 | Python 3.12 |
 | フレームワーク | FastAPI 0.136 |
 | ORM | SQLModel 0.0.38 |
-| DB | SQLite |
+| DB | SQLite(ローカル開発) / Neon Postgres(本番、`DATABASE_URL`環境変数で切り替え) |
 | テスト | pytest + httpx2 |
 | パッケージ管理 | Poetry |
 
@@ -28,7 +28,16 @@ poetry run uvicorn main:app --reload
 
 起動後、`http://localhost:8000/docs` でSwagger UIを確認できます。
 
-起動のたびに、DB・保存データを一度リセットしてサンプルの取引データ（20件）を自動生成します（`seed.py`）。うち2件は意図的に解析エラーを起こすデータになっており、エラーハンドリング（HTTP 422）も確認できます。
+初回起動時（DBが空の場合のみ）、`seed.py`が固定のサンプル取引データ（20件、`demo_transactions_data.py`）をDBに投入します。対応する取引ファイル（ジャーナル・商品レコード・支払レコード）は`demo_data/`配下にコミット済みの固定ファイルで、動的生成はしません。
+
+うち2件は意図的に解析エラーを起こすデータになっており、エラーハンドリング（HTTP 422）を確認できます。
+
+| 取引番号(transaction_no) | 取引ID(transaction_id) | エラー内容 |
+|---|---|---|
+| 6 | `2026071419153200005` | 商品レコード(CSV)の1行目のカテゴリIDが`invalid`という不正な値になっている |
+| 15 | `2026071420183200014` | 支払レコード(JSON)が`["invalid", "structure"]`という、想定と異なる配列構造になっている |
+
+デモデータの内容自体を作り直したい場合は、`scripts/generate_demo_data.py`（`create`/`clear`）を使ってください（`seed.py`からは独立しており、通常運用では実行不要です）。
 
 ## テスト実行
 

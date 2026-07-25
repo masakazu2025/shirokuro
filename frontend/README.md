@@ -24,3 +24,11 @@ VITE_API_BASE_URL=http://localhost:8000
 ```
 
 バックエンドを先に起動しておく必要があります（[backend/README.md](../backend/README.md)参照）。
+
+## テスト実行
+
+```bash
+npm test
+```
+
+Vitest + React Testing Libraryでコンポーネントのテストを行っています。
