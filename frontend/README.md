@@ -23,7 +23,7 @@ npm run dev
 VITE_API_BASE_URL=http://localhost:8000
 ```
 
-バックエンドを先に起動しておく必要があります（[backend/README.md](../backend/README.md)参照）。
+バックエンドを先に起動しておく必要があります（[バックエンドのREADME](../backend/README.md)参照）。
 
 ## テスト実行
 
@@ -32,3 +32,7 @@ npm test
 ```
 
 Vitest + React Testing Libraryでコンポーネントのテストを行っています。
+
+## ドキュメント
+
+- [検索機能の設計](../docs/検索機能.md)
