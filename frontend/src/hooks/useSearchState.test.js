@@ -9,11 +9,11 @@ beforeEach(() => {
 })
 
 describe('useSearchState', () => {
-  it('defaults to today, no terminals selected, and detail search closed', () => {
+  it('defaults to the fixed demo date (当日OFF), no terminals selected, and detail search closed', () => {
     const { result } = renderHook(() => useSearchState())
 
-    expect(result.current.date).toBe('2026-07-26')
-    expect(result.current.todayChecked).toBe(true)
+    expect(result.current.date).toBe('2026-07-14')
+    expect(result.current.todayChecked).toBe(false)
     expect(result.current.terminals).toEqual([])
     expect(result.current.detailOpen).toBe(false)
     expect(result.current.pinned).toBe(false)
@@ -112,11 +112,11 @@ describe('useSearchState', () => {
     it('詳細検索を開くとき、日付に値が入っていれば、その日の範囲(00:00〜23:59)を初期値としてセットする', () => {
       const { result } = renderHook(() => useSearchState())
 
-      // date はデフォルトで当日('2026-07-26')が入っている
+      // date はデフォルトでデモデータの日付('2026-07-14')が入っている
       act(() => result.current.toggleDetail())
 
-      expect(result.current.dateFrom).toBe('2026-07-26T00:00')
-      expect(result.current.dateTo).toBe('2026-07-26T23:59')
+      expect(result.current.dateFrom).toBe('2026-07-14T00:00')
+      expect(result.current.dateTo).toBe('2026-07-14T23:59')
     })
 
     it('詳細検索を閉じてから日付を変えて再度開くと、新しい日付の範囲に更新される', () => {
@@ -183,8 +183,8 @@ describe('useSearchState', () => {
       const params = result.current.buildQueryParams()
 
       expect(params.getAll('ipaddress')).toEqual(['10.0.0.1'])
-      expect(params.get('created_at_from')).toBe('2026-07-26T00:00')
-      expect(params.get('created_at_to')).toBe('2026-07-26T23:59')
+      expect(params.get('created_at_from')).toBe('2026-07-14T00:00')
+      expect(params.get('created_at_to')).toBe('2026-07-14T23:59')
       expect(params.get('transaction_no_from')).toBe('1042')
       expect(params.get('transaction_no_to')).toBe('1042')
     })
@@ -279,6 +279,7 @@ describe('useSearchState', () => {
       act(() => result.current.toggleTerminal('10.0.0.1'))
       act(() => result.current.toggleDetail())
       act(() => result.current.setDateFrom('2026-07-20T00:00'))
+      act(() => result.current.setDateTo('')) // 詳細検索を開いた際の自動セット分をクリアし、片方だけ入力の状態にする
       act(() => result.current.setTxnTo('10'))
 
       expect(result.current.dateRangeInvalid).toBe(false)
@@ -288,46 +289,46 @@ describe('useSearchState', () => {
   })
 
   describe('当日チェックボックス', () => {
-    it('デフォルトはON(当日)で、日付入力欄は無効化されている', () => {
+    it('デフォルトはOFFで、日付はデモデータに合わせた固定値・入力欄は編集可能', () => {
       const { result } = renderHook(() => useSearchState())
-
-      expect(result.current.todayChecked).toBe(true)
-      expect(result.current.dateInputDisabled).toBe(true)
-    })
-
-    it('OFFにすると日付入力欄が編集可能になり、値はそのまま維持される', () => {
-      const { result } = renderHook(() => useSearchState())
-
-      act(() => result.current.toggleTodayChecked()) // OFF
 
       expect(result.current.todayChecked).toBe(false)
+      expect(result.current.date).toBe('2026-07-14')
       expect(result.current.dateInputDisabled).toBe(false)
+    })
+
+    it('ONにすると日付が今日になり、入力欄が無効化される', () => {
+      const { result } = renderHook(() => useSearchState())
+
+      act(() => result.current.toggleTodayChecked()) // ON
+
+      expect(result.current.todayChecked).toBe(true)
       expect(result.current.date).toBe('2026-07-26')
+      expect(result.current.dateInputDisabled).toBe(true)
     })
 
     it('OFFの状態でsetDateすると、任意の日付に変更できる', () => {
       const { result } = renderHook(() => useSearchState())
 
-      act(() => result.current.toggleTodayChecked()) // OFF
       act(() => result.current.setDate('2026-01-01'))
 
       expect(result.current.date).toBe('2026-01-01')
     })
 
-    it('再度ONにすると、日付は今日に戻り、入力欄は無効化される', () => {
+    it('ONにしてから再度OFFにすると、日付は今日のまま編集可能になる', () => {
       const { result } = renderHook(() => useSearchState())
 
-      act(() => result.current.toggleTodayChecked()) // OFF
-      act(() => result.current.setDate('2026-01-01'))
       act(() => result.current.toggleTodayChecked()) // ON
+      act(() => result.current.toggleTodayChecked()) // OFF
 
       expect(result.current.date).toBe('2026-07-26')
-      expect(result.current.dateInputDisabled).toBe(true)
+      expect(result.current.dateInputDisabled).toBe(false)
     })
 
     it('チェック状態と日付がlocalStorageに保存される', () => {
       const { result } = renderHook(() => useSearchState())
 
+      act(() => result.current.toggleTodayChecked()) // ON
       act(() => result.current.toggleTodayChecked()) // OFF
       act(() => result.current.setDate('2026-01-01'))
 
@@ -358,13 +359,12 @@ describe('useSearchState', () => {
   })
 
   describe('クリアボタン', () => {
-    it('すべての検索条件がデフォルト状態(端末未選択・当日・空)にリセットされる', () => {
+    it('すべての検索条件がデフォルト状態(端末未選択・当日OFF・空)にリセットされる', () => {
       const { result } = renderHook(() => useSearchState())
 
       act(() => result.current.toggleTerminal('10.0.0.1'))
       act(() => result.current.toggleTerminal('10.0.0.2'))
-      act(() => result.current.toggleTodayChecked()) // OFF
-      act(() => result.current.setDate('2026-01-01'))
+      act(() => result.current.toggleTodayChecked()) // ON
       act(() => result.current.setTxn('42'))
       act(() => result.current.toggleDetail())
       act(() => result.current.setDateFrom('2026-01-01T00:00'))
@@ -375,8 +375,8 @@ describe('useSearchState', () => {
       act(() => result.current.clearAll())
 
       expect(result.current.terminals).toEqual([])
-      expect(result.current.todayChecked).toBe(true)
-      expect(result.current.date).toBe('2026-07-26')
+      expect(result.current.todayChecked).toBe(false)
+      expect(result.current.date).toBe('2026-07-14')
       expect(result.current.txn).toBe('')
       expect(result.current.dateFrom).toBe('')
       expect(result.current.dateTo).toBe('')
@@ -390,14 +390,14 @@ describe('useSearchState', () => {
       const { result } = renderHook(() => useSearchState())
 
       act(() => result.current.toggleTerminal('10.0.0.1'))
-      act(() => result.current.toggleTodayChecked()) // OFF
+      act(() => result.current.toggleTodayChecked()) // ON
       act(() => result.current.setDate('2026-01-01'))
 
       act(() => result.current.clearAll())
 
       expect(JSON.parse(localStorage.getItem('shirokuro:selectedTerminals'))).toEqual([])
-      expect(localStorage.getItem('shirokuro:todayChecked')).toBe('true')
-      expect(localStorage.getItem('shirokuro:date')).toBe('2026-07-26')
+      expect(localStorage.getItem('shirokuro:todayChecked')).toBe('false')
+      expect(localStorage.getItem('shirokuro:date')).toBe('2026-07-14')
     })
   })
 })

@@ -100,21 +100,22 @@ describe('SearchBar', () => {
     expect(screen.getByLabelText('取引番号範囲(終了)')).toHaveAttribute('max', '9999')
   })
 
-  it('当日チェックはデフォルトでON、日付入力欄は無効化されている', () => {
+  it('当日チェックはデフォルトでOFF、日付入力欄は編集可能でデモデータに合わせた日付が入っている', () => {
     render(<SearchBar transactions={TRANSACTIONS} onSearch={() => {}} />)
 
-    expect(screen.getByRole('checkbox', { name: '当日' })).toBeChecked()
-    expect(screen.getByLabelText('日付')).toBeDisabled()
+    expect(screen.getByRole('checkbox', { name: '当日' })).not.toBeChecked()
+    expect(screen.getByLabelText('日付')).toBeEnabled()
+    expect(screen.getByLabelText('日付')).toHaveValue('2026-07-14')
   })
 
-  it('当日チェックを外すと、日付入力欄が編集可能になる', async () => {
+  it('当日チェックを入れると、日付入力欄が無効化される', async () => {
     const user = userEvent.setup()
     render(<SearchBar transactions={TRANSACTIONS} onSearch={() => {}} />)
 
     await user.click(screen.getByRole('checkbox', { name: '当日' }))
 
-    expect(screen.getByRole('checkbox', { name: '当日' })).not.toBeChecked()
-    expect(screen.getByLabelText('日付')).toBeEnabled()
+    expect(screen.getByRole('checkbox', { name: '当日' })).toBeChecked()
+    expect(screen.getByLabelText('日付')).toBeDisabled()
   })
 
   it('詳細検索を開いている間は、当日チェックボックス自体も無効になる', async () => {
@@ -186,13 +187,14 @@ describe('SearchBar', () => {
 
       await selectTerminal(user, '10.0.0.1')
       await user.type(screen.getByLabelText('取引番号'), '42')
+      await user.click(screen.getByRole('checkbox', { name: '当日' }))
       expect(screen.getByRole('button', { name: '検索' })).toBeEnabled()
 
       await user.click(screen.getByRole('button', { name: 'クリア' }))
 
       expect(screen.getByLabelText('取引番号')).toHaveValue(null)
       expect(screen.getByRole('button', { name: '検索' })).toBeDisabled()
-      expect(screen.getByRole('checkbox', { name: '当日' })).toBeChecked()
+      expect(screen.getByRole('checkbox', { name: '当日' })).not.toBeChecked()
     })
   })
 

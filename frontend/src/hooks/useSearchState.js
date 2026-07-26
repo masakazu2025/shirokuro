@@ -4,6 +4,8 @@ const PIN_STORAGE_KEY = 'shirokuro:searchDetailPinned'
 const TERMINALS_STORAGE_KEY = 'shirokuro:selectedTerminals'
 const TODAY_CHECKED_STORAGE_KEY = 'shirokuro:todayChecked'
 const DATE_STORAGE_KEY = 'shirokuro:date'
+// デモデータ(demo_transactions_data.py)が固定でこの日付のため、初回訪問時に検索してすぐ結果が出るようデフォルト値にする
+const DEFAULT_DEMO_DATE = '2026-07-14'
 
 function todayDateString() {
   const now = new Date()
@@ -30,14 +32,14 @@ function readSavedTerminals() {
 
 function readTodayChecked() {
   const saved = localStorage.getItem(TODAY_CHECKED_STORAGE_KEY)
-  // 未保存(初回)はデフォルトでON扱い
-  return saved === null ? true : saved === 'true'
+  // 未保存(初回)はデフォルトでOFF扱い(当日を検索してもデモデータの日付とズレて0件になるため)
+  return saved === null ? false : saved === 'true'
 }
 
 function readInitialDate() {
   // 当日チェックがONなら、保存されていた日付は使わず必ず現在の日付を計算し直す
   if (readTodayChecked()) return todayDateString()
-  return localStorage.getItem(DATE_STORAGE_KEY) || todayDateString()
+  return localStorage.getItem(DATE_STORAGE_KEY) || DEFAULT_DEMO_DATE
 }
 
 export default function useSearchState() {
@@ -93,11 +95,10 @@ export default function useSearchState() {
     setTerminals([])
     localStorage.setItem(TERMINALS_STORAGE_KEY, JSON.stringify([]))
 
-    const today = todayDateString()
-    setTodayChecked(true)
-    localStorage.setItem(TODAY_CHECKED_STORAGE_KEY, 'true')
-    setDateState(today)
-    localStorage.setItem(DATE_STORAGE_KEY, today)
+    setTodayChecked(false)
+    localStorage.setItem(TODAY_CHECKED_STORAGE_KEY, 'false')
+    setDateState(DEFAULT_DEMO_DATE)
+    localStorage.setItem(DATE_STORAGE_KEY, DEFAULT_DEMO_DATE)
 
     setTxn('')
     setDateFrom('')
