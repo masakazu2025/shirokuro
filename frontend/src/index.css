@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* システム設定(prefers-color-scheme)ではなく、<html>のdarkクラスでダークモードを切り替える */
+@custom-variant dark (&:where(.dark, .dark *));
+
 body {
   margin: 0;
 }

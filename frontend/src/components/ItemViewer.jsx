@@ -1,3 +1,5 @@
+import { useState } from 'react'
+
 function DataTable({ columns, rows }) {
   return (
     <div className="overflow-x-auto">
@@ -31,9 +33,11 @@ function DataTable({ columns, rows }) {
 }
 
 export default function ItemViewer({ item }) {
+  const [selectedTableKey, setSelectedTableKey] = useState(null)
+
   if (item.type === 'text') {
     return (
-      <pre className="whitespace-pre-wrap text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-4">
+      <pre className="whitespace-pre-wrap text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded p-4">
         {item.data}
       </pre>
     )
@@ -44,19 +48,37 @@ export default function ItemViewer({ item }) {
   }
 
   if (item.type === 'tables') {
+    const keys = Object.keys(item.data)
+    // 直前に選んでいたタブが、切り替わった取引データに存在しない場合は先頭に戻す
+    const activeKey = keys.includes(selectedTableKey) ? selectedTableKey : keys[0]
+    const activeTable = item.data[activeKey]
+
     return (
-      <div className="space-y-6">
-        {Object.entries(item.data).map(([key, table]) => (
-          <div key={key}>
-            <h3 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-200">
-              {key}
-            </h3>
-            <DataTable columns={table.columns} rows={table.rows} />
-          </div>
-        ))}
+      <div>
+        <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700 mb-4">
+          {keys.map((key) => (
+            <button
+              key={key}
+              type="button"
+              onClick={() => setSelectedTableKey(key)}
+              className={`px-3 py-2 text-sm border-b-2 -mb-px transition-colors ${
+                key === activeKey
+                  ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+              }`}
+            >
+              {item.data[key].label}
+            </button>
+          ))}
+        </div>
+        {activeTable && <DataTable columns={activeTable.columns} rows={activeTable.rows} />}
       </div>
     )
   }
 
-  return <p className="text-sm text-gray-500">未対応のtypeです: {item.type}</p>
+  return (
+    <p className="text-sm text-gray-500 dark:text-gray-400">
+      未対応のtypeです: {item.type}
+    </p>
+  )
 }

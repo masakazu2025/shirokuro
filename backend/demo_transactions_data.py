@@ -2,6 +2,7 @@ from datetime import datetime
 
 # backend/demo_data/transactions/ 配下の固定デモファイルに対応する取引データ。
 # ファイルを再生成した場合は scripts/generate_demo_data.py の出力でこのリストを置き換える。
+# ipaddress はレジNoに対応する形で付与している(register_no=1→10.0.0.1, 2→10.0.0.2, 3→10.0.0.3)。
 DEMO_TRANSACTIONS = [
     {
         "transaction_id": "2026071418403200000",
@@ -11,6 +12,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 18, 40, 32, 405456),
         "started_at": datetime(2026, 7, 14, 18, 40, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 18, 41, 32, 405456),
+        "ipaddress": "10.0.0.2",
     },
     {
         "transaction_id": "2026071418473200001",
@@ -20,6 +22,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 18, 47, 32, 405456),
         "started_at": datetime(2026, 7, 14, 18, 47, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 18, 52, 32, 405456),
+        "ipaddress": "10.0.0.3",
     },
     {
         "transaction_id": "2026071418543200002",
@@ -29,6 +32,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 18, 54, 32, 405456),
         "started_at": datetime(2026, 7, 14, 18, 54, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 18, 59, 32, 405456),
+        "ipaddress": "10.0.0.2",
     },
     {
         "transaction_id": "2026071419013200003",
@@ -38,6 +42,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 19, 1, 32, 405456),
         "started_at": datetime(2026, 7, 14, 19, 1, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 19, 6, 32, 405456),
+        "ipaddress": "10.0.0.1",
     },
     {
         "transaction_id": "2026071419083200004",
@@ -47,6 +52,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 19, 8, 32, 405456),
         "started_at": datetime(2026, 7, 14, 19, 8, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 19, 11, 32, 405456),
+        "ipaddress": "10.0.0.1",
     },
     {
         "transaction_id": "2026071419153200005",
@@ -56,6 +62,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 19, 15, 32, 405456),
         "started_at": datetime(2026, 7, 14, 19, 15, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 19, 18, 32, 405456),
+        "ipaddress": "10.0.0.1",
     },
     {
         "transaction_id": "2026071419223200006",
@@ -65,6 +72,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 19, 22, 32, 405456),
         "started_at": datetime(2026, 7, 14, 19, 22, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 19, 24, 32, 405456),
+        "ipaddress": "10.0.0.2",
     },
     {
         "transaction_id": "2026071419293200007",
@@ -74,6 +82,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 19, 29, 32, 405456),
         "started_at": datetime(2026, 7, 14, 19, 29, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 19, 32, 32, 405456),
+        "ipaddress": "10.0.0.2",
     },
     {
         "transaction_id": "2026071419363200008",
@@ -83,6 +92,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 19, 36, 32, 405456),
         "started_at": datetime(2026, 7, 14, 19, 36, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 19, 40, 32, 405456),
+        "ipaddress": "10.0.0.3",
     },
     {
         "transaction_id": "2026071419433200009",
@@ -92,6 +102,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 19, 43, 32, 405456),
         "started_at": datetime(2026, 7, 14, 19, 43, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 19, 45, 32, 405456),
+        "ipaddress": "10.0.0.2",
     },
     {
         "transaction_id": "2026071419503200010",
@@ -101,6 +112,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 19, 50, 32, 405456),
         "started_at": datetime(2026, 7, 14, 19, 50, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 19, 55, 32, 405456),
+        "ipaddress": "10.0.0.1",
     },
     {
         "transaction_id": "2026071419573200011",
@@ -110,6 +122,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 19, 57, 32, 405456),
         "started_at": datetime(2026, 7, 14, 19, 57, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 19, 59, 32, 405456),
+        "ipaddress": "10.0.0.2",
     },
     {
         "transaction_id": "2026071420043200012",
@@ -119,6 +132,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 20, 4, 32, 405456),
         "started_at": datetime(2026, 7, 14, 20, 4, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 20, 5, 32, 405456),
+        "ipaddress": "10.0.0.3",
     },
     {
         "transaction_id": "2026071420113200013",
@@ -128,6 +142,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 20, 11, 32, 405456),
         "started_at": datetime(2026, 7, 14, 20, 11, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 20, 14, 32, 405456),
+        "ipaddress": "10.0.0.2",
     },
     {
         "transaction_id": "2026071420183200014",
@@ -137,6 +152,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 20, 18, 32, 405456),
         "started_at": datetime(2026, 7, 14, 20, 18, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 20, 22, 32, 405456),
+        "ipaddress": "10.0.0.3",
     },
     {
         "transaction_id": "2026071420253200015",
@@ -146,6 +162,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 20, 25, 32, 405456),
         "started_at": datetime(2026, 7, 14, 20, 25, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 20, 28, 32, 405456),
+        "ipaddress": "10.0.0.1",
     },
     {
         "transaction_id": "2026071420323200016",
@@ -155,6 +172,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 20, 32, 32, 405456),
         "started_at": datetime(2026, 7, 14, 20, 32, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 20, 35, 32, 405456),
+        "ipaddress": "10.0.0.1",
     },
     {
         "transaction_id": "2026071420393200017",
@@ -164,6 +182,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 20, 39, 32, 405456),
         "started_at": datetime(2026, 7, 14, 20, 39, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 20, 41, 32, 405456),
+        "ipaddress": "10.0.0.1",
     },
     {
         "transaction_id": "2026071420463200018",
@@ -173,6 +192,7 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 20, 46, 32, 405456),
         "started_at": datetime(2026, 7, 14, 20, 46, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 20, 49, 32, 405456),
+        "ipaddress": "10.0.0.3",
     },
     {
         "transaction_id": "2026071420533200019",
@@ -182,5 +202,6 @@ DEMO_TRANSACTIONS = [
         "created_at": datetime(2026, 7, 14, 20, 53, 32, 405456),
         "started_at": datetime(2026, 7, 14, 20, 53, 32, 405456),
         "ended_at": datetime(2026, 7, 14, 20, 54, 32, 405456),
+        "ipaddress": "10.0.0.2",
     },
 ]

@@ -15,8 +15,9 @@ async function toResult(res) {
   return body
 }
 
-export function getTransactions() {
-  return fetch(`${API_BASE_URL}/transactions`).then(toResult)
+export function getTransactions(params) {
+  const query = params ? `?${params.toString()}` : ''
+  return fetch(`${API_BASE_URL}/transactions${query}`).then(toResult)
 }
 
 export function getTransactionItems(transactionId) {

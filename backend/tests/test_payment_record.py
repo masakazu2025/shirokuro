@@ -27,9 +27,28 @@ COLUMNS = [
 ]
 
 LABELED_RECORD = {
-    "cash": [[1, "金額", 10000], [2, "釣り", 500]],
-    "credit": [[1, "金額", 15000], [2, "カード種別", "VISA"], [3, "支払方法", "一括"]],
-    "codepay": [[1, "金額", 5000], [2, "ブランド", "PayPay"]],
+    "cash": {
+        "label": "現金",
+        "rows": [
+            {"No": 1, "name": "金額", "value": 10000},
+            {"No": 2, "name": "釣り", "value": 500},
+        ],
+    },
+    "credit": {
+        "label": "クレジット",
+        "rows": [
+            {"No": 1, "name": "金額", "value": 15000},
+            {"No": 2, "name": "カード種別", "value": "VISA"},
+            {"No": 3, "name": "支払方法", "value": "一括"},
+        ],
+    },
+    "codepay": {
+        "label": "コード決済",
+        "rows": [
+            {"No": 1, "name": "金額", "value": 5000},
+            {"No": 2, "name": "ブランド", "value": "PayPay"},
+        ],
+    },
 }
 
 
@@ -77,11 +96,27 @@ def test_payment_record_to_json(session, payment_record_item):
     assert json_data["label"] == "支払レコード"
     assert json_data["data"] == {
         key: {
+            "label": entry["label"],
             "columns": COLUMNS,
-            "rows": rows,
+            "rows": entry["rows"],
         }
-        for key, rows in LABELED_RECORD.items()
+        for key, entry in LABELED_RECORD.items()
     }
+
+
+def test_payment_record_unknown_category_falls_back_to_raw_key(session, tmp_path):
+    """category_labelsに未定義のカテゴリは、日本語ラベルに変換せず生のキーのまま返す"""
+    transaction_dir = tmp_path / TRANSACTION_ID
+    transaction_dir.mkdir(parents=True)
+    file = transaction_dir / f"{PaymentRecordItem.prefix}-{TRANSACTION_ID}.json"
+    with open(file, mode="w", encoding="utf-8") as f:
+        json.dump({"gift_card": [1000]}, f, ensure_ascii=False, indent=2)
+
+    item = PaymentRecordItem(TRANSACTION_ID, tmp_path)
+    json_data = item.to_json(session)
+
+    assert "gift_card" in json_data["data"]
+    assert json_data["data"]["gift_card"]["label"] == "gift_card"
 
 
 def test_payment_record_invalid_structure_raises_item_data_error(

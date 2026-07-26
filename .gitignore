@@ -201,6 +201,11 @@ cython_debug/
 .vscode/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
+# VSCodeCounter extension output
+.VSCodeCounter/
+
+# Claude Code local settings
+.claude/
 
 # Ruff stuff:
 .ruff_cache/

@@ -1,5 +1,5 @@
-from datetime import datetime, time, timedelta
-from fastapi import APIRouter, Depends, HTTPException, Request
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlmodel import Session, select
 from app.transaction_items import item_registry, JournalItem
 from app.transaction_items.base import ItemDataError
@@ -16,6 +16,9 @@ from pathlib import Path
 
 router = APIRouter()
 
+# 取引番号の最大値(9999)にちなんだ、検索結果件数の安全弁上限。
+SEARCH_RESULT_LIMIT = 10000
+
 
 def get_transaction(transaction_id: str, session: Session = Depends(get_session)):
     transaction = session.get(Transaction, transaction_id)
@@ -28,9 +31,13 @@ def get_transaction_root_dir() -> Path:
     return Path(__file__).resolve().parent.parent.parent / "demo_data" / "transactions"
 
 
+# Depends()だとlist型フィールド(shop_no等)がクエリパラメータと認識されずbody扱いになる既知の問題があるため、
+# Query()を使う。FastAPI 0.115.0で公式にサポートされたQuery Parameter Models。
+# https://github.com/fastapi/fastapi/discussions/10371
+# https://github.com/fastapi/fastapi/issues/2869
 @router.get("/", response_model=list[Transaction])
 def read_transactions(
-    search_query: TransactionSearchQuery = Depends(),
+    search_query: Annotated[TransactionSearchQuery, Query()],
     session: Session = Depends(get_session),
 ):
     """取引一覧を取得します。検索条件を指定した場合は絞り込みます。"""
@@ -43,33 +50,46 @@ def read_transactions(
             status_code=422,
             detail="created_at_from must be before or equal to created_at_to",
         )
+    if (
+        search_query.transaction_no_from is not None
+        and search_query.transaction_no_to is not None
+        and search_query.transaction_no_from > search_query.transaction_no_to
+    ):
+        raise HTTPException(
+            status_code=422,
+            detail="transaction_no_from must be before or equal to transaction_no_to",
+        )
     statement = select(Transaction)
     if search_query.shop_no is not None:
-        statement = statement.where(Transaction.shop_no == search_query.shop_no)
+        statement = statement.where(Transaction.shop_no.in_(search_query.shop_no))
     if search_query.register_no is not None:
         statement = statement.where(
-            Transaction.register_no == search_query.register_no
+            Transaction.register_no.in_(search_query.register_no)
         )
-    if search_query.transaction_no is not None:
+    if search_query.transaction_no_from is not None:
         statement = statement.where(
-            Transaction.transaction_no == search_query.transaction_no
+            Transaction.transaction_no >= search_query.transaction_no_from
+        )
+    if search_query.transaction_no_to is not None:
+        statement = statement.where(
+            Transaction.transaction_no <= search_query.transaction_no_to
         )
     if search_query.ipaddress is not None:
         statement = statement.where(
-            Transaction.ipaddress == str(search_query.ipaddress)
+            Transaction.ipaddress.in_([str(ip) for ip in search_query.ipaddress])
         )
     if search_query.created_at_from is not None:
         statement = statement.where(
-            Transaction.created_at
-            >= datetime.combine(search_query.created_at_from, time.min)
+            Transaction.created_at >= search_query.created_at_from
         )
     if search_query.created_at_to is not None:
         statement = statement.where(
-            Transaction.created_at
-            < datetime.combine(
-                search_query.created_at_to + timedelta(days=1), time.min
-            )
+            Transaction.created_at <= search_query.created_at_to
         )
+    # 条件を絞らずに検索されたときの事故防止用の安全弁。実運用は日時等で絞られる前提なので、
+    # 通常はここに到達しない想定。件数がちょうどSEARCH_RESULT_LIMIT件ならフロント側で
+    # 「絞り込んでください」の案内を出す(追加のCOUNTクエリは行わない)。
+    statement = statement.limit(SEARCH_RESULT_LIMIT)
     transactions = session.exec(statement).all()
     return transactions
 

@@ -18,16 +18,16 @@ class PaymentRecordFormatter:
 
     def format_rows(
         self, category: str, rows: list, labels: list[PaymentLabelMaster]
-    ) -> list[list]:
+    ) -> list[dict]:
         lookup = {(m.category, m.item_id): m.item_label for m in labels}
         return [
-            [i, lookup.get((category, i), ""), row]
+            {"No": i, "name": lookup.get((category, i), ""), "value": row}
             for i, row in enumerate(rows, start=1)
         ]
 
     def format(
         self, data: dict, labels: list[PaymentLabelMaster]
-    ) -> dict[str, list[list]]:
+    ) -> dict[str, list[dict]]:
         return {key: self.format_rows(key, rows, labels) for key, rows in data.items()}
 
 
@@ -41,6 +41,13 @@ class PaymentRecordItem(BaseItem):
         {"key": "name", "label": "項目名"},
         {"key": "value", "label": "値"},
     ]
+    # 支払手段は種類が固定的で少数のため、DBマスタ化はせずここでハードコードする。
+    # 未定義のカテゴリは生のキーのまま表示する。
+    category_labels = {
+        "cash": "現金",
+        "credit": "クレジット",
+        "codepay": "コード決済",
+    }
 
     def __init__(self, transaction_id: str, root_dir: Path):
         super().__init__(transaction_id)
@@ -56,7 +63,7 @@ class PaymentRecordItem(BaseItem):
 
     def _format(
         self, row_data: dict[str, list], labels: list[PaymentLabelMaster]
-    ) -> dict[str, list[list]]:
+    ) -> dict[str, list[dict]]:
         return PaymentRecordFormatter().format(row_data, labels)
 
     def to_json(self, session: Session) -> dict:
@@ -72,7 +79,11 @@ class PaymentRecordItem(BaseItem):
             "name": self.name,
             "label": self.label,
             "data": {
-                key: {"columns": self.columns, "rows": rows}
+                key: {
+                    "label": self.category_labels.get(key, key),
+                    "columns": self.columns,
+                    "rows": rows,
+                }
                 for key, rows in row_data.items()
             },
         }
