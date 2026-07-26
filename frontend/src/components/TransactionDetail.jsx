@@ -62,7 +62,9 @@ export default function TransactionDetail({ transactionId }) {
         ))}
       </div>
 
-      {loading && <p className="text-sm text-gray-500">読み込み中...</p>}
+      {loading && (
+        <p className="text-sm text-gray-500 dark:text-gray-400">読み込み中...</p>
+      )}
 
       {error && (
         <p className="text-sm text-red-600 dark:text-red-400">
