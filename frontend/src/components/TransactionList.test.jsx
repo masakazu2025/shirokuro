@@ -50,4 +50,17 @@ describe('TransactionList', () => {
 
     expect(onSelect).toHaveBeenCalledWith('tx-2')
   })
+
+  it('selectedIdと一致する行だけがハイライト表示される', () => {
+    render(
+      <TransactionList
+        transactions={TRANSACTIONS}
+        selectedId="tx-2"
+        onSelect={() => {}}
+      />
+    )
+
+    expect(screen.getByText('取引 No.2').closest('button')).toHaveClass('bg-blue-50')
+    expect(screen.getByText('取引 No.1').closest('button')).not.toHaveClass('bg-blue-50')
+  })
 })

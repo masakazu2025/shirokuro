@@ -196,6 +196,16 @@ describe('SearchBar', () => {
       expect(screen.getByRole('button', { name: '検索' })).toBeDisabled()
       expect(screen.getByRole('checkbox', { name: '当日' })).not.toBeChecked()
     })
+
+    it('クリアボタンを押すと、onClearが呼ばれる(親側の検索結果表示をリセットするため)', async () => {
+      const user = userEvent.setup()
+      const onClear = vi.fn()
+      render(<SearchBar transactions={TRANSACTIONS} onSearch={() => {}} onClear={onClear} />)
+
+      await user.click(screen.getByRole('button', { name: 'クリア' }))
+
+      expect(onClear).toHaveBeenCalledTimes(1)
+    })
   })
 
   describe('詳細検索/簡易検索ボタンの表示切り替え', () => {

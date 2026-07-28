@@ -33,6 +33,14 @@ npm test
 
 Vitest + React Testing Libraryでコンポーネントのテストを行っています。
 
+### E2Eテスト
+
+```bash
+npm run test:e2e
+```
+
+Playwrightによるブラウザ経由のE2Eテストです。`playwright.config.js`がフロントエンド（`npm run dev`、ポート5173）とバックエンド（`poetry run uvicorn main:app --port 8001`）を自動起動するため、事前にサーバーを立ち上げておく必要はありません（既に起動済みの場合はそちらを再利用します）。localStorageの復元やダークモードの見た目など、Vitestでは検証しづらい実ブラウザ・実バックエンドをまたぐ挙動を対象にしています。
+
 ## ドキュメント
 
 - [検索機能の設計](../docs/検索機能.md)

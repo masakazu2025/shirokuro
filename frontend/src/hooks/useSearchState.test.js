@@ -399,5 +399,19 @@ describe('useSearchState', () => {
       expect(localStorage.getItem('shirokuro:todayChecked')).toBe('false')
       expect(localStorage.getItem('shirokuro:date')).toBe('2026-07-14')
     })
+
+    it('📌固定中にクリアしても、詳細検索は閉じずに開いたままになる', () => {
+      const { result } = renderHook(() => useSearchState())
+
+      act(() => result.current.toggleDetail()) // 開く
+      act(() => result.current.togglePin()) // 固定する
+      act(() => result.current.setTxnFrom('1'))
+
+      act(() => result.current.clearAll())
+
+      expect(result.current.pinned).toBe(true)
+      expect(result.current.detailOpen).toBe(true)
+      expect(result.current.txnFrom).toBe('')
+    })
   })
 })
