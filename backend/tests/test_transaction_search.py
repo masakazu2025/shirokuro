@@ -443,7 +443,14 @@ def test_search_transactions_created_at_from_boundary_is_inclusive(search_client
     )
     assert response.status_code == 200
     ids = {t["transaction_id"] for t in response.json()}
-    assert "2026060100000002" in ids  # created_atが完全一致する取引も含む(>=)
+    # created_atが完全一致する取引(002)も含む(>=)
+    assert ids == {
+        "2026060100000002",
+        "2026060100000003",
+        "2026060100000004",
+        "2026060100000005",
+        "2026060100000006",
+    }
 
 
 def test_search_transactions_created_at_to_boundary_is_inclusive(search_client):
@@ -472,7 +479,14 @@ def test_search_transactions_transaction_no_from_boundary_is_inclusive(search_cl
     )
     assert response.status_code == 200
     ids = {t["transaction_id"] for t in response.json()}
-    assert "2026060100000002" in ids  # transaction_no=2の取引も含む(>=)
+    # transaction_no=2の取引(002)も含む(>=)
+    assert ids == {
+        "2026060100000002",
+        "2026060100000003",
+        "2026060100000004",
+        "2026060100000005",
+        "2026060100000006",
+    }
 
 
 def test_search_transactions_transaction_no_to_boundary_is_inclusive(search_client):

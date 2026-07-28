@@ -31,6 +31,13 @@ function App() {
       .catch((err) => setError(err))
   }
 
+  const handleClear = () => {
+    setResults([])
+    setHasSearched(false)
+    setSelectedId(null)
+    setError(null)
+  }
+
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
       <header className="flex items-start justify-between border-b border-gray-200 dark:border-gray-700 px-6 py-4">
@@ -52,7 +59,7 @@ function App() {
         </button>
       </header>
 
-      <SearchBar transactions={allTransactions} onSearch={handleSearch} />
+      <SearchBar transactions={allTransactions} onSearch={handleSearch} onClear={handleClear} />
 
       {error && (
         <p className="p-6 text-sm text-red-600 dark:text-red-400">

@@ -71,6 +71,24 @@ describe('TerminalSelect', () => {
     expect(screen.getByText('10.0.0.1')).toBeInTheDocument()
   })
 
+  it('selectedに含まれるIPのチェックボックスだけがchecked状態になる', async () => {
+    const user = userEvent.setup()
+    render(
+      <TerminalSelect
+        transactions={TRANSACTIONS}
+        selected={['10.0.0.1']}
+        onToggle={() => {}}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: '10.0.0.1' }))
+    const dropdown = screen.getByRole('group')
+    const checkboxes = within(dropdown).getAllByRole('checkbox')
+
+    expect(checkboxes[0]).toBeChecked() // 10.0.0.1
+    expect(checkboxes[1]).not.toBeChecked() // 10.0.0.2
+  })
+
   it('ドロップダウンの外側をクリックすると閉じる', async () => {
     const user = userEvent.setup()
     render(

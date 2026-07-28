@@ -29,14 +29,24 @@ test.describe('検索の基本フロー', () => {
     await expect(page.getByRole('button', { name: 'ジャーナル' })).toBeVisible()
   })
 
-  test('支払レコードの決済手段タブが切り替えられる', async ({ page }) => {
+  test('支払レコードの決済手段タブをクリックすると、表示内容が切り替わる', async ({ page }) => {
     await page.goto('/')
 
     await selectTerminal(page, '10.0.0.1')
     await page.getByRole('button', { name: '検索', exact: true }).click()
-    await expect(page.getByRole('button', { name: '支払レコード' })).toBeVisible()
+    await expect(page.getByText(/取引 No\.\d+/).first()).toBeVisible()
 
+    // 取引No.5は複数の決済手段(コード決済・現金)を持つ
+    await page.getByText('取引 No.5').click()
     await page.getByRole('button', { name: '支払レコード' }).click()
+
+    await expect(page.getByRole('button', { name: 'コード決済' })).toBeVisible()
+    await expect(page.getByRole('button', { name: '現金' })).toBeVisible()
+    await expect(page.getByText('楽天Pay')).toBeVisible()
+
+    await page.getByRole('button', { name: '現金' }).click()
+
+    await expect(page.getByText('楽天Pay')).not.toBeVisible()
     await expect(page.getByRole('table')).toBeVisible()
   })
 })

@@ -2,13 +2,18 @@ import { useId } from 'react'
 import useSearchState from '../hooks/useSearchState'
 import TerminalSelect from './TerminalSelect'
 
-export default function SearchBar({ transactions, onSearch }) {
+export default function SearchBar({ transactions, onSearch, onClear }) {
   const dateId = useId()
   const txnId = useId()
   const state = useSearchState()
 
   const handleSearch = () => {
     onSearch(state.buildQueryParams())
+  }
+
+  const handleClear = () => {
+    state.clearAll()
+    onClear?.()
   }
 
   return (
@@ -69,7 +74,7 @@ export default function SearchBar({ transactions, onSearch }) {
 
         <button
           type="button"
-          onClick={state.clearAll}
+          onClick={handleClear}
           className="text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-md px-3 py-1.5"
         >
           クリア

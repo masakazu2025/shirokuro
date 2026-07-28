@@ -35,4 +35,19 @@ test.describe('詳細検索/簡易検索の切り替え', () => {
     await expect(page.getByRole('button', { name: /簡易検索/ })).toBeVisible()
     await expect(page.getByLabel('日時範囲(開始)')).toBeVisible()
   })
+
+  test('固定中にクリアしても、詳細検索は閉じない(固定を解除しない限り)', async ({ page }) => {
+    await page.goto('/')
+
+    await page.getByRole('button', { name: /詳細検索/ }).click()
+    await page.getByRole('button', { name: /固定/ }).click()
+
+    await page.getByRole('button', { name: 'クリア' }).click()
+    // 固定中はクリアしても詳細検索は開いたまま(閉じてもリロードでどうせ開き直るため)
+    await expect(page.getByRole('button', { name: /簡易検索/ })).toBeVisible()
+
+    await page.reload()
+
+    await expect(page.getByRole('button', { name: /簡易検索/ })).toBeVisible()
+  })
 })

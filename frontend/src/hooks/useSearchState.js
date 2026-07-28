@@ -105,8 +105,9 @@ export default function useSearchState() {
     setDateTo('')
     setTxnFrom('')
     setTxnTo('')
-    setDetailOpen(false)
-  }, [])
+    // 📌固定中は、クリアしてもリロードでどうせ開き直るだけなので、そのまま開いた状態を維持する
+    setDetailOpen(pinned)
+  }, [pinned])
 
   const togglePin = useCallback(() => {
     setPinned((prev) => {
