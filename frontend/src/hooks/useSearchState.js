@@ -42,43 +42,63 @@ function readInitialDate() {
   return localStorage.getItem(DATE_STORAGE_KEY) || DEFAULT_DEMO_DATE
 }
 
+function appendRange(params, fromKey, toKey, fromValue, toValue) {
+  if (fromValue) params.append(fromKey, fromValue)
+  if (toValue) params.append(toKey, toValue)
+}
+
+// useStateと同じ初期値の渡し方(値 or 遅延初期化関数)をサポートしつつ、
+// setterを呼ぶとlocalStorageへの書き込みも自動で行う
+function useLocalStorageState(key, initialValue, serialize = String) {
+  const [value, setValue] = useState(initialValue)
+
+  const setPersistedValue = useCallback(
+    (next) => {
+      setValue((prev) => {
+        const resolved = typeof next === 'function' ? next(prev) : next
+        localStorage.setItem(key, serialize(resolved))
+        return resolved
+      })
+    },
+    [key, serialize]
+  )
+
+  return [value, setPersistedValue]
+}
+
 export default function useSearchState() {
-  const [terminals, setTerminals] = useState(readSavedTerminals)
-  const [date, setDateState] = useState(readInitialDate)
-  const [todayChecked, setTodayChecked] = useState(readTodayChecked)
+  const [terminals, setTerminals] = useLocalStorageState(
+    TERMINALS_STORAGE_KEY,
+    readSavedTerminals,
+    JSON.stringify
+  )
+  const [date, setDate] = useLocalStorageState(DATE_STORAGE_KEY, readInitialDate)
+  const [todayChecked, setTodayChecked] = useLocalStorageState(
+    TODAY_CHECKED_STORAGE_KEY,
+    readTodayChecked
+  )
   const [txn, setTxn] = useState('')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [txnFrom, setTxnFrom] = useState('')
   const [txnTo, setTxnTo] = useState('')
   const [detailOpen, setDetailOpen] = useState(readPinnedPreference)
-  const [pinned, setPinned] = useState(readPinnedPreference)
+  const [pinned, setPinned] = useLocalStorageState(PIN_STORAGE_KEY, readPinnedPreference)
 
-  const toggleTerminal = useCallback((ip) => {
-    setTerminals((prev) => {
-      const next = prev.includes(ip) ? prev.filter((t) => t !== ip) : [...prev, ip]
-      localStorage.setItem(TERMINALS_STORAGE_KEY, JSON.stringify(next))
-      return next
-    })
-  }, [])
-
-  const setDate = useCallback((value) => {
-    setDateState(value)
-    localStorage.setItem(DATE_STORAGE_KEY, value)
-  }, [])
+  const toggleTerminal = useCallback(
+    (ip) => {
+      setTerminals((prev) => (prev.includes(ip) ? prev.filter((t) => t !== ip) : [...prev, ip]))
+    },
+    [setTerminals]
+  )
 
   const toggleTodayChecked = useCallback(() => {
     setTodayChecked((prev) => {
       const next = !prev
-      localStorage.setItem(TODAY_CHECKED_STORAGE_KEY, String(next))
-      if (next) {
-        const today = todayDateString()
-        setDateState(today)
-        localStorage.setItem(DATE_STORAGE_KEY, today)
-      }
+      if (next) setDate(todayDateString())
       return next
     })
-  }, [])
+  }, [setTodayChecked, setDate])
 
   const toggleDetail = useCallback(() => {
     setDetailOpen((prev) => {
@@ -93,12 +113,8 @@ export default function useSearchState() {
 
   const clearAll = useCallback(() => {
     setTerminals([])
-    localStorage.setItem(TERMINALS_STORAGE_KEY, JSON.stringify([]))
-
     setTodayChecked(false)
-    localStorage.setItem(TODAY_CHECKED_STORAGE_KEY, 'false')
-    setDateState(DEFAULT_DEMO_DATE)
-    localStorage.setItem(DATE_STORAGE_KEY, DEFAULT_DEMO_DATE)
+    setDate(DEFAULT_DEMO_DATE)
 
     setTxn('')
     setDateFrom('')
@@ -107,20 +123,13 @@ export default function useSearchState() {
     setTxnTo('')
     // 📌固定中は、クリアしてもリロードでどうせ開き直るだけなので、そのまま開いた状態を維持する
     setDetailOpen(pinned)
-  }, [pinned])
+  }, [pinned, setTerminals, setTodayChecked, setDate])
 
   const togglePin = useCallback(() => {
-    setPinned((prev) => {
-      const next = !prev
-      localStorage.setItem(PIN_STORAGE_KEY, String(next))
-      return next
-    })
-  }, [])
+    setPinned((prev) => !prev)
+  }, [setPinned])
 
-  const quickDisabled = detailOpen
   const dateInputDisabled = detailOpen || todayChecked
-  const txnQuickDisabled = detailOpen
-  const txnRangeDisabled = false
   const dateRangeInvalid = Boolean(detailOpen && dateFrom && dateTo && dateFrom > dateTo)
   const txnRangeInvalid = Boolean(
     detailOpen && txnFrom !== '' && txnTo !== '' && Number(txnFrom) > Number(txnTo)
@@ -132,19 +141,17 @@ export default function useSearchState() {
     terminals.forEach((ip) => params.append('ipaddress', ip))
 
     if (detailOpen) {
-      if (dateFrom) params.append('created_at_from', dateFrom)
-      if (dateTo) params.append('created_at_to', dateTo)
-      if (txnFrom) params.append('transaction_no_from', txnFrom)
-      if (txnTo) params.append('transaction_no_to', txnTo)
+      appendRange(params, 'created_at_from', 'created_at_to', dateFrom, dateTo)
+      appendRange(params, 'transaction_no_from', 'transaction_no_to', txnFrom, txnTo)
     } else {
-      if (date) {
-        params.append('created_at_from', `${date}T00:00`)
-        params.append('created_at_to', `${date}T23:59`)
-      }
-      if (txn) {
-        params.append('transaction_no_from', txn)
-        params.append('transaction_no_to', txn)
-      }
+      appendRange(
+        params,
+        'created_at_from',
+        'created_at_to',
+        date && `${date}T00:00`,
+        date && `${date}T23:59`
+      )
+      appendRange(params, 'transaction_no_from', 'transaction_no_to', txn, txn)
     }
 
     return params
@@ -173,9 +180,6 @@ export default function useSearchState() {
     pinned,
     togglePin,
     clearAll,
-    quickDisabled,
-    txnQuickDisabled,
-    txnRangeDisabled,
     dateRangeInvalid,
     txnRangeInvalid,
     canSearch,

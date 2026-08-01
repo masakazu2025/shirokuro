@@ -87,14 +87,13 @@ describe('useSearchState', () => {
   })
 
   describe('グレーアウトの判定', () => {
-    it('複数端末を選択しても、取引番号の入力欄(単一・範囲とも)は無効化されない', () => {
+    it('複数端末を選択しても、取引番号の入力欄は無効化されない', () => {
       const { result } = renderHook(() => useSearchState())
 
       act(() => result.current.toggleTerminal('10.0.0.1'))
       act(() => result.current.toggleTerminal('10.0.0.2'))
 
-      expect(result.current.txnQuickDisabled).toBe(false)
-      expect(result.current.txnRangeDisabled).toBe(false)
+      expect(result.current.detailOpen).toBe(false)
     })
 
     it('詳細検索を開くと、単一入力欄(日付・取引番号・当日チェック)が無効化される', () => {
@@ -102,11 +101,8 @@ describe('useSearchState', () => {
 
       act(() => result.current.toggleDetail())
 
-      expect(result.current.quickDisabled).toBe(true)
+      expect(result.current.detailOpen).toBe(true)
       expect(result.current.dateInputDisabled).toBe(true)
-      expect(result.current.txnQuickDisabled).toBe(true)
-      // 範囲入力(取引番号)は、詳細検索を開いても無効化されない
-      expect(result.current.txnRangeDisabled).toBe(false)
     })
 
     it('詳細検索を開くとき、日付に値が入っていれば、その日の範囲(00:00〜23:59)を初期値としてセットする', () => {
@@ -160,16 +156,14 @@ describe('useSearchState', () => {
       const { result } = renderHook(() => useSearchState())
 
       // detailOpenの復元だけでなく、それに依存するグレーアウト判定も正しく効いていること
-      expect(result.current.quickDisabled).toBe(true)
+      expect(result.current.detailOpen).toBe(true)
       expect(result.current.dateInputDisabled).toBe(true)
-      expect(result.current.txnQuickDisabled).toBe(true)
     })
 
     it('固定されていない場合は、detailOpenがfalseで初期化される', () => {
       const { result } = renderHook(() => useSearchState())
 
       expect(result.current.detailOpen).toBe(false)
-      expect(result.current.quickDisabled).toBe(false)
     })
   })
 

@@ -46,7 +46,7 @@ export default function SearchBar({ transactions, onSearch, onClear }) {
                 type="checkbox"
                 checked={state.todayChecked}
                 onChange={state.toggleTodayChecked}
-                disabled={state.quickDisabled}
+                disabled={state.detailOpen}
               />
               当日
             </label>
@@ -65,7 +65,7 @@ export default function SearchBar({ transactions, onSearch, onClear }) {
             placeholder="例: 1042"
             value={state.txn}
             onChange={(e) => state.setTxn(e.target.value)}
-            disabled={state.txnQuickDisabled}
+            disabled={state.detailOpen}
             className="w-24 text-sm text-gray-900 dark:text-gray-100 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-md px-2 py-1.5 disabled:opacity-40"
           />
         </div>
@@ -149,8 +149,7 @@ export default function SearchBar({ transactions, onSearch, onClear }) {
                 aria-label="取引番号範囲(開始)"
                 value={state.txnFrom}
                 onChange={(e) => state.setTxnFrom(e.target.value)}
-                disabled={state.txnRangeDisabled}
-                className={`w-16 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 border rounded-md px-2 py-1.5 disabled:opacity-40 ${
+                className={`w-16 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 border rounded-md px-2 py-1.5 ${
                   state.txnRangeInvalid
                     ? 'border-red-500 dark:border-red-500'
                     : 'border-gray-300 dark:border-gray-700'
@@ -164,8 +163,7 @@ export default function SearchBar({ transactions, onSearch, onClear }) {
                 aria-label="取引番号範囲(終了)"
                 value={state.txnTo}
                 onChange={(e) => state.setTxnTo(e.target.value)}
-                disabled={state.txnRangeDisabled}
-                className={`w-16 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 border rounded-md px-2 py-1.5 disabled:opacity-40 ${
+                className={`w-16 text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-900 border rounded-md px-2 py-1.5 ${
                   state.txnRangeInvalid
                     ? 'border-red-500 dark:border-red-500'
                     : 'border-gray-300 dark:border-gray-700'
