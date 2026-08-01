@@ -23,7 +23,7 @@ shirokuro-backend/
 
 ## TransactionItems のレジストリパターン
 
-取引に紐づくデータ種別（ジャーナル・画像など）を追加する際に、
+取引に紐づくデータ種別（ジャーナル・画像など）の一覧を、
 ルーター側のコードを変更せず拡張できるよう、レジストリパターンを採用しています。
 
 **仕組み：**
@@ -41,11 +41,17 @@ class NewItem(BaseItem):
     def to_json(self) -> dict:
         ...
 
-# __init__.py の _items に追加するだけでAPIに反映される
+# __init__.py の _items に追加するだけで一覧APIに反映される
 _items = [JournalItem, ProductRecordItem, PaymentRecordItem, NewItem]
 ```
 
 `BaseItem.__init_subclass__` により、`name` / `label` の定義漏れをクラス定義時点でエラー検出できます。
+
+**適用範囲**: 動的に拡張されるのは `GET /transactions/{id}/items`（種別一覧）のみです。
+実際にデータを取得する `GET /transactions/{id}/items/{name}` の3エンドポイントは
+種別ごとに手書きしています。`journal` だけDBセッションが不要でシグネチャが異なる、
+という実際の差があるため、レジストリで一般化せず個別実装のままにしている判断です。
+新しい種別を追加する際は、一覧には自動で載りますが、取得エンドポイントは別途追加が必要です。
 
 ## データモデル
 

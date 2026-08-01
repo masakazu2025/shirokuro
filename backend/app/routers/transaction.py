@@ -87,8 +87,8 @@ def read_transactions(
             Transaction.created_at <= search_query.created_at_to
         )
     # 条件を絞らずに検索されたときの事故防止用の安全弁。実運用は日時等で絞られる前提なので、
-    # 通常はここに到達しない想定。件数がちょうどSEARCH_RESULT_LIMIT件ならフロント側で
-    # 「絞り込んでください」の案内を出す(追加のCOUNTクエリは行わない)。
+    # 通常はここに到達しない想定。境界値(ちょうどSEARCH_RESULT_LIMIT件)の扱いは
+    # 未実装・理由つきで見送り。詳細はdocs/検索機能.md「以降実装(理由つきで保留)」を参照。
     statement = statement.limit(SEARCH_RESULT_LIMIT)
     transactions = session.exec(statement).all()
     return transactions
